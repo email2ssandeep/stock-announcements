@@ -1,4 +1,5 @@
 import logging
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -18,16 +19,23 @@ logger = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).parent.parent / "static"
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    init_db()
+def _refresh_worker():
+    """Background thread: seed + initial scrape so server starts immediately."""
     db = SessionLocal()
     try:
         seed_companies(db)
         announcement_service.refresh_announcements(db)
+    except Exception as e:
+        logger.exception("Initial refresh failed: %s", e)
     finally:
         db.close()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup — init DB synchronously, then scrape in background
+    init_db()
+    threading.Thread(target=_refresh_worker, daemon=True).start()
 
     def scheduled_refresh():
         db = SessionLocal()
