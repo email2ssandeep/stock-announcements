@@ -1,0 +1,5 @@
+Generate
+-Functional test case
+-API test case
+-Edge cases
+-UAT check list

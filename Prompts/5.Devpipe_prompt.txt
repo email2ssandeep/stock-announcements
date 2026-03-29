@@ -1,0 +1,4 @@
+Generate backend structure with:
+-Controllers
+-Services
+-Repository Pattern

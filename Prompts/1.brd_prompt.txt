@@ -1,0 +1,5 @@
+Convert the notes in to a BRD with
+-Scope
+-Feature
+-Business rules
+-Assumptions

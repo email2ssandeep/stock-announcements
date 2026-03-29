@@ -1,0 +1,37 @@
+# Stock Alerts — Requirements Gathering Conversation
+**Client:** Michael
+**Developer:** Sandeep
+
+---
+
+**Michael:** Sandeep, I need an application that monitors a few shares for me — Infosys, HCL, Reliance and TCS. Whenever these companies make any news or announcement on NSE or BSE, I want to receive an email.
+
+**Sandeep:** Got it, Michael. I'll build that for you. Does it need to include the current day share price as well?
+
+**Michael:** No, I don't want the share price at all. I only need the latest announcements made by these companies — nothing else.
+
+**Sandeep:** Understood. Where exactly should I look for these announcements? Any specific source?
+
+**Michael:** Check the Screener site. If you go to Infosys's page there, you'll see an announcement section — that's exactly the kind of announcement I'm looking for.
+
+**Sandeep:** Perfect. Should I show all announcements or just the recent ones?
+
+**Michael:** Only the latest 3 announcements per company. And each one should start with the date it was announced.
+
+**Sandeep:** Makes sense. I'll set that up. Now, do you want this only on email, or would you prefer a web-based dashboard instead?
+
+**Michael:** Actually, can we do a good UI instead of sending emails? There should be an announcement alert section where all these updates show up.
+
+**Sandeep:** Sure! Do you have a design in mind, or should I come up with something?
+
+**Michael:** I have a screenshot of the kind of look I want. It's at `D:\Sandeep_AITest\Test_Claude\Source\StockAlerts\SampleScreen.png` — can you match that style?
+
+**Sandeep:** I'll build it to match that. I'll share a preview once it's ready.
+
+**Michael:** Ok. Thanks. Since it is a site we develop. Can you also try whether we can convert into APP as well?
+
+**Sandeep:** Options like Railway, Heroku, or Render. Railway is a good simple choice for this kind of app to begin with.
+
+**Michael:** Let's use Railway.
+
+**Sandeep:** Sure, Michael — I'll document everything we've covered.

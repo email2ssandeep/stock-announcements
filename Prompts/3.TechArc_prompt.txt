@@ -1,0 +1,5 @@
+Create technical architecture for this system
+-High level architecture
+-Tech stack
+-API's
+-Database schema

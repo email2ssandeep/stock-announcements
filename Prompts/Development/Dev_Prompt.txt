@@ -1,0 +1,6 @@
+1.Based on the above generated all the .md files, start create the project development, strictly follow the .md files order.
+
+2. change this screen look and feel like "D:\Sandeep_AITest\Test_Claude\StockAnnoucements\
+
+3. What are the steps still pending to do the developemt?
+

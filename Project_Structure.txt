@@ -1,0 +1,204 @@
+============================================================
+  STOCK ANNOUNCEMENT ALERTS — FULL PROJECT STRUCTURE
+============================================================
+  Client   : Michael
+  Developer: Sandeep
+  Date     : 2026-03-29
+  Version  : 1.0
+============================================================
+
+StockAnnoucements/
+├── .env.example                        ← Environment variable template
+├── .gitignore                          ← Git ignore rules
+├── railway.toml                        ← Railway build + deploy config
+│
+├── Docs/                               ← Project documentation
+│   ├── brd.md / brd.docx               ← Business Requirements Document
+│   ├── modules.md / modules.docx       ← Module & Feature Breakdown
+│   ├── TechArc.md / TechArc.docx       ← Technical Architecture
+│   ├── Resource_Allot.md / .docx       ← Resource Allocation
+│   ├── DevPipeline.md / .docx          ← Development Pipeline
+│   ├── TestCases.md / .docx            ← Test Cases & UAT Checklist
+│   └── Proj_Optimization.md / .docx    ← Project Optimization Plan
+│
+├── backend/
+│   ├── requirements.txt                ← Python dependencies
+│   └── app/
+│       ├── __init__.py
+│       ├── main.py                     ← FastAPI app entry point + lifespan + static file serving
+│       ├── config.py                   ← Env vars + Screener.in company URL mapping
+│       ├── database.py                 ← SQLAlchemy engine, session, Base, init_db()
+│       │
+│       ├── models/                     ── ORM Models (SQLite tables)
+│       │   ├── __init__.py
+│       │   ├── company.py              ← companies table (id, ticker, name, screener_url)
+│       │   ├── announcement.py         ← announcements table (id, company_id, title, date, rank)
+│       │   └── scrape_log.py           ← scrape_log table (scraped_at, companies_fetched, errors, duration_ms)
+│       │
+│       ├── schemas/                    ── Pydantic request/response shapes
+│       │   ├── __init__.py
+│       │   ├── announcement.py         ← AnnouncementOut, AllAnnouncementsOut
+│       │   └── health.py               ← HealthOut
+│       │
+│       ├── repositories/               ── Database access layer
+│       │   ├── __init__.py
+│       │   ├── base.py                 ← Generic CRUD base class
+│       │   ├── company_repository.py   ← get_by_ticker(), exists()
+│       │   ├── announcement_repository.py ← get_by_company(), replace_for_company()
+│       │   └── scrape_log_repository.py   ← get_latest()
+│       │
+│       ├── services/                   ── Business logic layer
+│       │   ├── __init__.py
+│       │   ├── scraper_service.py      ← httpx + BeautifulSoup4 → Screener.in scraper
+│       │   ├── cache_service.py        ← TTL in-memory cache (get, set, invalidate)
+│       │   ├── announcement_service.py ← Orchestrates cache → DB → scraper
+│       │   └── scheduler_service.py    ← APScheduler 30-min background refresh job
+│       │
+│       ├── controllers/                ── FastAPI route handlers
+│       │   ├── __init__.py
+│       │   ├── announcement_controller.py  ← GET /api/announcements
+│       │   │                               ← GET /api/announcements/{ticker}
+│       │   └── health_controller.py        ← GET /api/health
+│       │                                   ← POST /api/refresh (admin key protected)
+│       │
+│       ├── core/
+│       │   ├── __init__.py
+│       │   └── seed.py                 ← Seeds 4 companies into DB on startup
+│       │
+│       └── static/                     ← React production build output (auto-generated)
+│           ├── index.html
+│           └── assets/
+│
+└── frontend/
+    ├── package.json                    ← Node dependencies (React 18, Vite, Tailwind)
+    ├── vite.config.js                  ← Vite config; builds into backend/static/
+    ├── tailwind.config.js              ← Tailwind theme (brand colors)
+    ├── postcss.config.js               ← PostCSS + Autoprefixer
+    ├── index.html                      ← HTML entry point
+    └── src/
+        ├── main.jsx                    ← React DOM root
+        ├── index.css                   ← Tailwind directives
+        ├── App.jsx                     ← Root component; fetches /api/announcements
+        └── components/
+            ├── AnnouncementSection.jsx ← 4-column grid of company panels
+            └── AnnouncementCard.jsx    ← Single announcement card (date first, then title)
+
+============================================================
+  TECH STACK
+============================================================
+
+  Layer       | Technology
+  ------------|----------------------------------------------
+  Backend     | Python 3.11 + FastAPI
+  Scraping    | httpx + BeautifulSoup4
+  Scheduling  | APScheduler 3.x (in-process, 30-min refresh)
+  Cache       | Python dict + TTL (in-memory)
+  Database    | SQLite + SQLAlchemy 2.x
+  Frontend    | React 18 + Vite + Tailwind CSS
+  Deployment  | Railway
+
+============================================================
+  API ENDPOINTS
+============================================================
+
+  Method  | Endpoint                        | Description
+  --------|----------------------------------|--------------------------------
+  GET     | /api/announcements              | All 4 companies, top-3 each
+  GET     | /api/announcements/{ticker}     | Single company (infosys/hcl/reliance/tcs)
+  GET     | /api/health                     | Uptime, cache age, last scrape info
+  POST    | /api/refresh                    | Manual re-scrape (X-Admin-Key header)
+
+============================================================
+  DATABASE SCHEMA (SQLite)
+============================================================
+
+  companies
+    id            INTEGER PRIMARY KEY
+    ticker        TEXT UNIQUE        (infosys, hcl, reliance, tcs)
+    name          TEXT               (Infosys, HCL, Reliance, TCS)
+    screener_url  TEXT               (Screener.in profile URL)
+
+  announcements
+    id                INTEGER PRIMARY KEY
+    company_id        INTEGER FK → companies.id
+    title             TEXT
+    announcement_date TEXT
+    source_url        TEXT
+    scraped_at        DATETIME
+    rank              INTEGER        (1 = most recent, max 3)
+
+  scrape_log
+    id                INTEGER PRIMARY KEY
+    scraped_at        DATETIME
+    companies_fetched INTEGER
+    errors            TEXT           (JSON array of failed tickers)
+    duration_ms       INTEGER
+
+============================================================
+  HOW TO RUN LOCALLY
+============================================================
+
+  1. Backend:
+     cd backend
+     pip install -r requirements.txt
+     uvicorn app.main:app --reload
+     → API available at http://localhost:8000
+
+  2. Frontend (dev mode with proxy to backend):
+     cd frontend
+     npm install
+     npm run dev
+     → UI available at http://localhost:5173
+
+  3. Frontend production build:
+     cd frontend
+     npm run build
+     → Output written to backend/static/
+     → FastAPI serves the React app at http://localhost:8000
+
+============================================================
+  HOW TO DEPLOY TO RAILWAY
+============================================================
+
+  1. Push code to a Git repository (GitHub / GitLab)
+  2. Create a new Railway project and connect the repo
+  3. Set environment variables in Railway dashboard:
+       ADMIN_KEY=<your-secret-key>
+       CACHE_TTL_SECONDS=1800
+       SCHEDULER_INTERVAL_MINUTES=30
+  4. Railway will auto-detect railway.toml and run:
+       Build : cd frontend && npm install && npm run build
+               cd backend && pip install -r requirements.txt
+       Start : uvicorn app.main:app --host 0.0.0.0 --port $PORT
+  5. App goes live at the Railway-provided public URL
+
+============================================================
+  BUSINESS RULES (from BRD)
+============================================================
+
+  BR-01  Only Infosys, HCL, Reliance, TCS are monitored.
+  BR-02  Maximum 3 announcements per company displayed.
+  BR-03  Each announcement entry must begin with its date.
+  BR-04  Share price data must NOT appear anywhere in the app.
+  BR-05  Data sourced exclusively from Screener.in.
+  BR-06  Production deployment platform is Railway only.
+
+============================================================
+  MODULE BUILD ORDER
+============================================================
+
+  1. Module 1 — Data Scraping Layer   [COMPLETED]
+     config, database, models, repositories,
+     scraper_service, cache_service, scheduler_service, seed
+
+  2. Module 2 — Backend / API Layer   [COMPLETED]
+     schemas, announcement_controller, health_controller, main
+
+  3. Module 3 — Frontend Dashboard    [COMPLETED]
+     App.jsx, AnnouncementSection, AnnouncementCard,
+     Tailwind config, Vite config, index.html
+
+  4. Module 4 — Deployment Config     [COMPLETED]
+     railway.toml, .env.example, .gitignore
+
+============================================================
