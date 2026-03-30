@@ -11,6 +11,8 @@ __pycache__/
 # Node
 node_modules/
 frontend/dist/
+mobile/node_modules/
+mobile/.expo/
 
 # Build output committed to repo for Railway deployment
 # backend/static/
